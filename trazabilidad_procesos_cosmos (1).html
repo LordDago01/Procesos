@@ -1,0 +1,2308 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+  
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa de Procesos — COSMOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-950:#0B1B2B;
+    --navy-900:#122A40;
+    --navy-800:#1B3A54;
+    --navy-700:#254C6C;
+    --hull-blue:#2E5A78;
+    --sea-foam:#CBA785;
+    --rust:#9C7A55;
+    --amber:#CBA785;
+    --gold:#CBA785;
+    --green:#5C7A6E;
+    --purple:#5B6B7A;
+    --grey-300:#c9cdd4;
+    --grey-500:#7c8698;
+    --ink:#111c2b;
+    --paper:#f5f6f8;
+    --card:#ffffff;
+    --line:#e4e6ea;
+    --shadow: 0 8px 24px -12px rgba(11,27,43,.22);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 90% -10%, #eaf1fb 0%, transparent 60%),
+      var(--paper);
+    color:var(--ink);
+    font-family: 'Poppins', 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding: 28px 20px 60px;
+  }
+  .wrap{max-width:1440px;margin:0 auto;}
+
+  header{
+    display:flex;align-items:center;gap:22px;
+    background:linear-gradient(120deg, var(--navy-950) 0%, var(--navy-800) 100%);
+    border-radius:18px;padding:22px 28px;color:#fff;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  header::after{
+    content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;
+    background:radial-gradient(circle, rgba(200,165,131,.18), transparent 70%);
+  }
+  .logo-badge{
+    width:60px;height:60px;flex:none;border-radius:14px;
+    background:var(--navy-950);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+    overflow:hidden;padding:12px;
+  }
+  .logo-badge img{width:100%;height:100%;object-fit:contain;}
+  .logo-badge svg{width:30px;height:30px;}
+  .htitle{flex:1;min-width:240px;}
+  .htitle .eyebrow{
+    font-size:11px;letter-spacing:.16em;color:var(--gold);font-weight:700;text-transform:uppercase;
+  }
+  .htitle h1{
+    margin:2px 0 4px;font-size:26px;letter-spacing:.02em;font-weight:800;
+  }
+  .htitle p{margin:0;color:var(--grey-300);font-size:13px;max-width:600px;line-height:1.4;}
+
+  .kpi-strip{display:flex;gap:12px;flex-wrap:wrap;}
+  .kpi{
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:12px;padding:10px 16px;min-width:96px;
+    display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+    transition:transform .2s ease, background .2s ease;
+  }
+  .kpi:hover{transform:translateY(-2px);background:rgba(255,255,255,.1);}
+  .kpi .num{font-size:22px;font-weight:800;line-height:1;}
+  .kpi .lbl{font-size:10px;color:var(--grey-300);letter-spacing:.05em;text-transform:uppercase;}
+  .kpi.c-blue .num{color:var(--gold);}
+  .kpi.c-green .num{color:var(--gold);}
+  .kpi.c-orange .num{color:var(--gold);}
+  .kpi.c-purple .num{color:var(--gold);}
+
+  .toolbar{
+    margin-top:20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;
+    box-shadow:var(--shadow);
+  }
+  .toolbar .search{
+    flex:1;min-width:200px;position:relative;
+  }
+  .toolbar input[type="text"]{
+    width:100%;padding:9px 12px 9px 34px;border-radius:9px;border:1px solid var(--line);
+    font-size:13px;background:var(--paper);color:var(--ink);
+  }
+  .toolbar .search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--grey-500);}
+  .chip-group{display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{
+    border:1px solid var(--line);background:var(--paper);color:var(--navy-800);
+    font-size:12px;font-weight:600;padding:7px 13px;border-radius:999px;cursor:pointer;
+    transition:all .15s ease; user-select:none;
+  }
+  .chip:hover{border-color:var(--hull-blue);}
+  .chip.active{background:var(--navy-900);color:#fff;border-color:var(--navy-900);}
+  .chip.tipo-estrategico.active{background:var(--purple);border-color:var(--purple);}
+  .chip.tipo-core.active{background:var(--hull-blue);border-color:var(--hull-blue);}
+  .chip.tipo-soporte.active{background:var(--gold);border-color:var(--gold);}
+  .toolbar .hint{font-size:11px;color:var(--grey-500);margin-left:auto;}
+  .btn-ghost{
+    border:1px solid var(--line);background:var(--paper);color:var(--navy-800);
+    font-size:12px;font-weight:700;padding:7px 13px;border-radius:9px;cursor:pointer;
+    transition:all .15s ease;
+  }
+  .btn-ghost:hover{border-color:var(--hull-blue);color:var(--hull-blue);}
+
+  .btn-save{
+    display:flex;align-items:center;gap:7px;
+    border:1px solid var(--navy-900);background:var(--navy-900);color:#fff;
+    font-size:12px;font-weight:700;padding:7px 14px;border-radius:9px;cursor:pointer;
+    transition:all .15s ease;
+  }
+  .btn-save svg{width:14px;height:14px;flex:none;}
+  .btn-save:hover{background:var(--navy-800);border-color:var(--navy-800);}
+  .btn-save.unsaved{background:var(--gold);border-color:var(--gold);color:var(--navy-950);}
+  .btn-save.unsaved:hover{background:#b8946e;border-color:#b8946e;}
+  .save-status{font-size:11px;color:var(--grey-500);margin-left:auto;}
+  .save-note{font-size:11px;color:var(--grey-500);margin:8px 2px 0;line-height:1.5;}
+  .save-note b{color:var(--navy-800);}
+
+  .cronograma-section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:14px;}
+  .cronograma-head h2{margin:0 0 2px;font-size:14px;font-weight:800;color:var(--navy-900);}
+  .cronograma-sub{font-size:11px;color:var(--grey-500);}
+  .cronograma-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px;}
+  .cronograma-table th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--grey-500);padding:5px 8px;border-bottom:2px solid var(--line);}
+  .cronograma-table td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  .cronograma-table tr:last-child td{border-bottom:none;}
+  .cron-prioridad{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--navy-950);color:#fff;font-weight:700;font-size:10.5px;}
+  .cron-macro{font-weight:700;color:var(--navy-800);font-size:12px;}
+  .cron-fecha{display:inline-block;padding:2px 9px;border-radius:99px;background:#eef2f7;color:var(--navy-800);font-weight:700;font-size:11px;white-space:nowrap;}
+  .cron-fecha.pendiente{background:#f2f2f2;color:var(--grey-500);font-style:italic;font-weight:500;}
+  .cron-transversal{display:inline-block;padding:2px 8px;border-radius:99px;background:var(--gold);color:#4a3520;font-weight:700;font-size:10px;}
+  .cron-transversal.none{color:var(--grey-300);font-size:12px;}
+
+  .mapa{margin-top:18px;display:flex;flex-direction:column;gap:22px;}
+
+  .tipo-head{
+    display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:0 2px;
+  }
+  .tipo-pill{
+    font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+    padding:6px 14px;border-radius:999px;color:#fff;
+  }
+  .tipo-pill.estrategico{background:linear-gradient(120deg,var(--purple),#6d52b5);}
+  .tipo-pill.core{background:linear-gradient(120deg,var(--hull-blue),var(--navy-800));}
+  .tipo-pill.soporte{background:linear-gradient(120deg,var(--gold),#a9825c);}
+  .tipo-desc{font-size:12px;color:var(--grey-500);}
+  .tipo-count{font-size:11.5px;color:var(--grey-500);margin-left:auto;font-weight:600;}
+
+  .macro-grid{
+    display:grid;grid-template-columns:repeat(auto-fill, minmax(380px,1fr));gap:14px;
+    align-items:stretch;
+  }
+  .macro-card{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    box-shadow:var(--shadow);
+    align-self:stretch;
+    display:flex;flex-direction:column;
+    height:fit-content;
+  }
+  .macro-head{
+    display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;
+    border-left:4px solid var(--hull-blue);transition:background .15s ease;
+    border-radius:14px;
+    min-height:78px;
+  }
+  .macro-card.open .macro-head{border-radius:14px 14px 0 0;}
+  .macro-card[data-tipo="Estratégico"] .macro-head{border-left-color:var(--purple);}
+  .macro-card[data-tipo="Core Business"] .macro-head{border-left-color:var(--hull-blue);}
+  .macro-card[data-tipo="Soporte"] .macro-head{border-left-color:var(--gold);}
+  .macro-head:hover{background:#f5f8fc;}
+  .macro-head h3{
+    margin:0 0 2px;font-size:14.5px;font-weight:800;color:var(--navy-900);
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.28;
+  }
+  .macro-title-wrap{flex:1;min-width:0;}
+  .macro-owner{
+    display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--grey-500);font-weight:600;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+  }
+  .macro-owner svg{width:11px;height:11px;flex:none;color:var(--grey-500);}
+  .macro-meta{font-size:11px;color:var(--grey-500);font-weight:600;white-space:nowrap;}
+  .macro-consolidado{
+    display:flex;align-items:center;gap:6px;flex:none;
+  }
+  .macro-consolidado .prog-track-sm{width:56px;}
+  .macro-consolidado .macro-pct{
+    font-size:12px;font-weight:800;color:var(--navy-900);min-width:32px;text-align:right;
+  }
+  .chevron{
+    flex:none;width:20px;height:20px;display:flex;align-items:center;justify-content:center;
+    color:var(--grey-500);transition:transform .25s ease;
+  }
+  .macro-card.open .chevron{transform:rotate(90deg);color:var(--hull-blue);}
+
+  /* Se muestra/oculta con display (no max-height calculado), así el alto
+     siempre se ajusta al contenido real y nada queda recortado. */
+  .macro-body{ display:none; border-top:1px solid var(--line); }
+  .macro-card.open .macro-body{ display:block; }
+
+  .proceso-row{border-bottom:1px solid var(--line);}
+  .proceso-row:last-child{border-bottom:none;}
+  .proceso-head{
+    display:flex;align-items:center;gap:10px;padding:10px 16px 10px 22px;cursor:pointer;
+    transition:background .12s ease;flex-wrap:wrap;
+  }
+  .proceso-head:hover{background:#f7fafd;}
+  .proceso-name{font-size:13px;font-weight:700;color:var(--navy-800);flex:1;min-width:120px;}
+  .proceso-count{
+    font-size:10.5px;font-weight:700;color:var(--hull-blue);background:#e9f2fc;
+    padding:2px 9px;border-radius:999px;white-space:nowrap;
+  }
+  .chevron-sm{
+    flex:none;width:16px;height:16px;display:flex;align-items:center;justify-content:center;
+    color:var(--grey-500);font-size:11px;transition:transform .2s ease;
+  }
+  .proceso-row.open .chevron-sm{transform:rotate(90deg);color:var(--hull-blue);}
+
+  .avance-mini{display:flex;align-items:center;gap:6px;flex:none;}
+  .prog-track-sm{width:52px;height:6px;border-radius:99px;background:#e6ebf3;overflow:hidden;flex:none;}
+  .prog-fill-sm{height:100%;border-radius:99px;transition:width .25s ease, background .25s ease;}
+  .prog-fill-sm.hi{background:linear-gradient(90deg,#2fa860,#5fd88b);}
+  .prog-fill-sm.mid{background:linear-gradient(90deg,#f2a93b,#f7c46b);}
+  .prog-fill-sm.low{background:linear-gradient(90deg,#e8703a,#f2946a);}
+  .prog-fill-sm.zero{background:#cfd6e2;}
+  .avance-input{
+    width:52px;text-align:right;border:1px solid var(--line);border-radius:6px;
+    font-size:13px;font-weight:700;padding:5px 6px;color:var(--navy-800);background:#fff;
+  }
+  .avance-input:focus{outline:none;border-color:var(--hull-blue);}
+  .pct-sign{font-size:11px;color:var(--grey-500);}
+
+  .proceso-detail{ display:none; background:#f7fafd; }
+  .proceso-row.open .proceso-detail{ display:block; padding:4px 16px 14px 22px; }
+  .meta-line{
+    display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 10px;font-size:11.5px;color:var(--grey-500);
+  }
+  .meta-line span{display:inline-flex;align-items:center;gap:5px;}
+  .meta-line svg{width:12px;height:12px;flex:none;}
+  .sub-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
+  .sub-list li{
+    display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink);
+    background:#fff;border:1px solid var(--line);border-radius:9px;padding:7px 11px;
+  }
+  .sub-list li .dot{flex:none;width:6px;height:6px;border-radius:50%;background:var(--sea-foam);}
+  .sub-list li.hl{background:#fff6e6;border-color:var(--amber);}
+
+  mark{background:#ffe9a8;color:inherit;border-radius:3px;padding:0 2px;}
+  .no-results{
+    text-align:center;padding:40px;color:var(--grey-500);background:var(--card);
+    border-radius:14px;border:1px solid var(--line);
+  }
+
+  .bottom-grid{
+    margin-top:18px;display:grid;grid-template-columns: 1fr 1.3fr;gap:16px;
+  }
+  @media (max-width: 980px){.bottom-grid{grid-template-columns:1fr;} .macro-grid{grid-template-columns:1fr;}}
+  .panel{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;
+    box-shadow:var(--shadow);
+  }
+  .panel h3{
+    margin:0 0 14px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--navy-900);
+    font-weight:800;
+  }
+  .donut-wrap{display:flex;align-items:center;gap:18px;}
+  .donut-wrap svg{flex:none;}
+  .donut-center{font-size:22px;font-weight:800;fill:var(--navy-900);}
+  .legend{display:flex;flex-direction:column;gap:9px;font-size:12.5px;}
+  .legend .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;}
+  .legend b{color:var(--navy-900);}
+
+  .estado-bars{display:flex;gap:10px;}
+  .estado-bar{flex:1;text-align:center;border-radius:12px;padding:14px 6px;color:#fff;}
+  .estado-bar .n{font-size:24px;font-weight:800;display:block;}
+  .estado-bar .t{font-size:10.5px;margin-top:4px;opacity:.92;letter-spacing:.02em;}
+  .estado-bar.b1{background:linear-gradient(160deg,var(--purple),#6d52b5);}
+  .estado-bar.b2{background:linear-gradient(160deg,var(--hull-blue),var(--navy-800));}
+  .estado-bar.b3{background:linear-gradient(160deg,var(--gold),#a9825c);}
+
+  .steps{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:9px;}
+  .steps li{
+    display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--ink);line-height:1.4;
+  }
+  .steps li .tick{
+    flex:none;width:18px;height:18px;border-radius:50%;background:var(--hull-blue);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:11px;margin-top:1px;
+  }
+  .objective-box{
+    background:linear-gradient(135deg,var(--navy-900),var(--hull-blue));color:#fff;
+    border-radius:12px;padding:14px 16px;display:flex;gap:10px;align-items:flex-start;
+  }
+  .objective-box svg{flex:none;width:20px;height:20px;margin-top:2px;color:var(--sea-foam);}
+  .objective-box p{margin:0;font-size:12.5px;line-height:1.5;}
+  .objective-box b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--sea-foam);margin-bottom:3px;}
+
+  footer{text-align:center;color:var(--grey-500);font-size:11px;margin-top:24px;}
+  .note{
+    margin-top:10px;font-size:11.5px;color:var(--grey-500);background:#fff9ec;border:1px solid #f2e3b8;
+    border-radius:10px;padding:8px 12px;
+  }
+
+  @media (max-width:760px){
+    header{flex-wrap:wrap;}
+    .kpi-strip{width:100%;}
+  }
+
+  .gerencia-list{display:flex;flex-direction:column;gap:9px;max-height:230px;overflow-y:auto;padding-right:4px;}
+  .gerencia-row{display:flex;align-items:center;gap:8px;font-size:12px;}
+  .gerencia-row .gname{flex:1;min-width:0;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .gerencia-row .gbar-track{width:70px;height:6px;border-radius:99px;background:#e6ebf3;overflow:hidden;flex:none;}
+  .gerencia-row .gbar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--hull-blue),var(--sea-foam));}
+  .gerencia-row .gcount{font-weight:800;color:var(--navy-900);width:18px;text-align:right;flex:none;}
+
+  /* Panel de avance ponderado por tipo */
+  .tipo-avance-badge{display:flex;align-items:center;gap:8px;}
+  .tipo-avance-badge .tab-track{width:90px;height:6px;border-radius:99px;background:#e6ebf3;overflow:hidden;flex:none;}
+  .tipo-avance-badge .tab-fill{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--hull-blue),var(--sea-foam));transition:width .2s;}
+  .tipo-avance-badge .tab-pct{font-size:16px;font-weight:800;color:var(--navy-900);white-space:nowrap;}
+
+  /* Bloque inferior colapsable */
+  .bottom-toggle{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:12px 18px;margin:18px 0 0;cursor:pointer;user-select:none;
+    box-shadow:var(--shadow);
+  }
+  .bottom-toggle:hover{border-color:var(--hull-blue);}
+  .bottom-toggle .bt-label{font-size:13px;font-weight:700;color:var(--navy-900);display:flex;align-items:center;gap:8px;}
+  .bottom-toggle .bt-label svg{width:16px;height:16px;color:var(--hull-blue);}
+  .bottom-toggle .bt-chevron{width:18px;height:18px;color:var(--grey-500);transition:transform .2s;}
+  .bottom-toggle.open .bt-chevron{transform:rotate(180deg);}
+  .bottom-grid-wrap{overflow:hidden;max-height:0;transition:max-height .25s ease;}
+  .bottom-grid-wrap.open{max-height:900px;}
+
+  /* Leyenda explicativa */
+  .info-legend{
+    margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:0;box-shadow:var(--shadow);overflow:hidden;
+  }
+  .legend-toggle{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:16px 22px;cursor:pointer;user-select:none;transition:background .15s ease;
+  }
+  .legend-toggle:hover{background:#f5f8fc;}
+  .legend-chevron{width:18px;height:18px;color:var(--grey-500);transition:transform .2s;flex:none;}
+  .legend-toggle.open .legend-chevron{transform:rotate(180deg);}
+  .legend-body-wrap{overflow:hidden;max-height:0;transition:max-height .25s ease;}
+  .legend-body-wrap.open{max-height:900px;}
+  .legend-body{padding:0 22px 20px;}
+  .info-legend h2{
+    margin:0;font-size:14px;font-weight:800;color:var(--navy-900);
+    display:flex;align-items:center;gap:8px;
+  }
+  .info-legend h2 svg{width:17px;height:17px;color:var(--hull-blue);flex:none;}
+  .legend-body > p{margin:0 0 16px;font-size:12px;color:var(--grey-500);line-height:1.5;}
+  .legend-cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media (max-width:900px){.legend-cols{grid-template-columns:1fr;}}
+  .legend-block h4{
+    margin:0 0 10px;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--navy-800);
+    font-weight:800;
+  }
+  .tipo-legend-list{display:flex;flex-direction:column;gap:10px;}
+  .tipo-legend-item{display:flex;gap:10px;align-items:flex-start;}
+  .tipo-legend-item .tipo-pill{
+    flex:none;margin-top:1px;width:104px;text-align:center;box-sizing:border-box;
+  }
+  .tipo-legend-item p{margin:0;font-size:12px;color:var(--ink);line-height:1.45;}
+  .jerarquia-flow{display:flex;flex-direction:column;gap:0;}
+  .jerarquia-step{
+    display:flex;gap:10px;align-items:flex-start;position:relative;padding-bottom:14px;
+  }
+  .jerarquia-step:last-child{padding-bottom:0;}
+  .jerarquia-step::before{
+    content:"";position:absolute;left:13px;top:26px;bottom:0;width:2px;background:var(--line);
+  }
+  .jerarquia-step:last-child::before{display:none;}
+  .jerarquia-badge{
+    flex:none;width:27px;height:27px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:800;color:#fff;z-index:1;
+  }
+  .jerarquia-step[data-nivel="macro"] .jerarquia-badge{background:linear-gradient(120deg,var(--purple),#6d52b5);}
+  .jerarquia-step[data-nivel="proceso"] .jerarquia-badge{background:linear-gradient(120deg,var(--hull-blue),var(--navy-800));}
+  .jerarquia-step[data-nivel="subproceso"] .jerarquia-badge{background:linear-gradient(120deg,var(--gold),#a9825c);}
+  .jerarquia-step[data-nivel="actividad"] .jerarquia-badge{background:linear-gradient(120deg,var(--green),#7c9a8c);}
+  .jerarquia-text{flex:1;min-width:0;}
+  .jerarquia-text .jt-label{font-size:11.5px;font-weight:800;color:var(--navy-900);}
+  .jerarquia-text .jt-example{
+    font-size:12px;color:var(--ink);margin-top:1px;
+  }
+  .jerarquia-text .jt-example b{color:var(--hull-blue);}
+  .jerarquia-text .jt-desc{font-size:11px;color:var(--grey-500);margin-top:2px;line-height:1.4;}
+</style>
+</head>
+<body id="artifacts-component-root-html">
+<div class="wrap">
+
+  <header>
+    <div class="logo-badge">
+      <img src="data:image/png;base64,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b7/PcVg/CDnC6kdNb78XJoBE+pHY2++TjsaKHGEdj5aO/lqYADL7dyTWdcejsa77cUT29teT/ruTjbDeR+jdn4sRQAPeR603ZLQ2KlgAkMp/ch8AAAwhWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhCBYAIQgWACEIFgAhPD/Sa1u1OVxk8AAAAAASUVORK5CYII=" alt="Cosmos Global Logistics">
+    </div>
+    <div class="htitle">
+      <div class="eyebrow">Sistema Integrado de Gestión</div>
+      <h1>Mapa de Procesos — COSMOS</h1>
+      <p>Estructura de procesos organizada por Macroproceso y Proceso, con gerencia responsable, aprobador y % de avance editable por proceso.</p>
+    </div>
+    <div class="kpi-strip">
+      <div class="kpi c-blue"><span class="num" id="kpi-macros">13</span><span class="lbl">Macroprocesos</span></div>
+      <div class="kpi c-green"><span class="num" id="kpi-procesos">58</span><span class="lbl">Procesos</span></div>
+      <div class="kpi c-purple"><span class="num" id="kpi-gerencias">12</span><span class="lbl">Gerencias / Áreas</span></div>
+      <div class="kpi c-blue"><span class="num" id="kpi-avance">13%</span><span class="lbl">Avance prom.</span></div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3" stroke-linecap="round"></path></svg>
+      <input type="text" id="searchInput" placeholder="Buscar macroproceso, proceso, gerencia o aprobador...">
+    </div>
+    <div class="chip-group" id="tipoChips">
+      <div class="chip active" data-tipo="all">Todos</div>
+      <div class="chip tipo-estrategico" data-tipo="Estratégico">Estratégico</div>
+      <div class="chip tipo-core" data-tipo="Core Business">Core Business</div>
+      <div class="chip tipo-soporte" data-tipo="Soporte">Soporte</div>
+    </div>
+    <button class="btn-ghost" id="toggleAllBtn">Expandir todo</button>
+    <button class="btn-ghost" id="cronogramaBtn">📅 Ver Cronograma</button>
+    <button class="btn-save" id="saveBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path><path d="M17 21v-8H7v8M7 3v5h8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      <span id="saveBtnLabel">Guardar cambios</span>
+    </button>
+    <div class="hint">Click en un macroproceso o proceso para desplegar →</div>
+  </div>
+  <div class="save-note" id="saveNote">Los cambios se guardan automáticamente en este navegador. Para que el avance se mantenga al compartir el archivo, usa <b>Guardar cambios</b> y envía el HTML descargado.</div>
+
+  <div class="info-legend">
+    <div class="legend-toggle" id="legendToggle">
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4M12 8h.01" stroke-linecap="round" stroke-linejoin="round"></path></svg>Cómo leer este mapa</h2>
+      <svg class="legend-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </div>
+    <div class="legend-body-wrap" id="legendBodyWrap">
+    <div class="legend-body">
+    <p>Antes de explorar el detalle, esta guía resume qué significan los tipos de proceso y cómo se organiza la jerarquía Macroproceso → Proceso → Actividad.</p>
+    <div class="legend-cols">
+      <div class="legend-block">
+        <h4>Tipos de proceso</h4>
+        <div class="tipo-legend-list">
+          <div class="tipo-legend-item">
+            <span class="tipo-pill estrategico">Estratégico</span>
+            <p>Procesos de dirección: definen el rumbo, las políticas y los objetivos de la organización. Son responsabilidad de la alta dirección y guían al resto de los procesos.</p>
+          </div>
+          <div class="tipo-legend-item">
+            <span class="tipo-pill core">Core Business</span>
+            <p>Procesos misionales: generan directamente el producto o servicio que la empresa entrega a sus clientes. Son el corazón del negocio.</p>
+          </div>
+          <div class="tipo-legend-item">
+            <span class="tipo-pill soporte">Soporte</span>
+            <p>Procesos habilitantes: proveen los recursos (personas, sistemas, materiales, finanzas) que los procesos estratégicos y core necesitan para funcionar.</p>
+          </div>
+        </div>
+      </div>
+      <div class="legend-block">
+        <h4>Jerarquía: Macroproceso → Proceso → Actividad</h4>
+        <div class="jerarquia-flow">
+          <div class="jerarquia-step" data-nivel="macro">
+            <span class="jerarquia-badge">M</span>
+            <div class="jerarquia-text">
+              <div class="jt-label">Macroproceso</div>
+              <div class="jt-example">Ej: <b>Administración y Finanzas</b></div>
+              <div class="jt-desc">Agrupa varios procesos afines bajo una misma gerencia o función de negocio.</div>
+            </div>
+          </div>
+          <div class="jerarquia-step" data-nivel="proceso">
+            <span class="jerarquia-badge">P</span>
+            <div class="jerarquia-text">
+              <div class="jt-label">Proceso</div>
+              <div class="jt-example">Ej: <b>Gestión de Compras</b></div>
+              <div class="jt-desc">Conjunto de pasos que transforman una necesidad en un resultado, dentro del macroproceso.</div>
+            </div>
+          </div>
+          <div class="jerarquia-step" data-nivel="subproceso">
+            <span class="jerarquia-badge">P</span>
+            <div class="jerarquia-text">
+              <div class="jt-label">Sub-proceso</div>
+              <div class="jt-example">Ej: <b>Alta de Proveedor</b></div>
+              <div class="jt-desc">Un proceso más específico dentro de "Gestión de Compras", con su propio inicio y fin.</div>
+            </div>
+          </div>
+          <div class="jerarquia-step" data-nivel="actividad">
+            <span class="jerarquia-badge">A</span>
+            <div class="jerarquia-text">
+              <div class="jt-label">Actividad</div>
+              <div class="jt-example">Ej: <b>Crear el proveedor en SAP</b></div>
+              <div class="jt-desc">Tarea concreta y puntual que se ejecuta dentro del sub-proceso "Alta de Proveedor".</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="cronograma-section" id="cronogramaSection" style="display:none;">
+    <div class="cronograma-head">
+      <h2>Cronograma de Macroprocesos</h2>
+      <span class="cronograma-sub">Fecha de entrega por macroproceso, ordenado por prioridad</span>
+    </div>
+    <table class="cronograma-table">
+      <thead>
+        <tr><th>Prioridad</th><th>Macroproceso</th><th>Grupo</th><th>Fecha de entrega</th><th>Proceso transversal</th></tr>
+      </thead>
+      <tbody id="cronogramaBody"></tbody>
+    </table>
+  </div>
+
+  <div class="mapa" id="mapa"><div class="tipo-section">
+      <div class="tipo-head">
+        <span class="tipo-pill estrategico">Estratégico</span>
+        <span class="tipo-desc">3 macroprocesos</span>
+        <span class="tipo-avance-badge" id="tipo-head-avance-estrategico">
+          <span class="tab-track"><span class="tab-fill" style="width:0%"></span></span>
+          <span class="tab-pct">0% avance</span>
+        </span>
+        <span class="tipo-count">9 procesos</span>
+      </div>
+      <div class="macro-grid"><div class="macro-card" data-tipo="Estratégico">
+        <div class="macro-head">
+          <div class="macro-title-wrap">
+            <h3>Gestión de la Sostenibilidad</h3>
+            <span class="macro-owner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg>Gianmarco Torres</span>
+          </div>
+          <span class="macro-meta">2 procesos</span>
+          <div class="macro-consolidado">
+            <div class="prog-track-sm"><div class="prog-fill-sm macro-fill zero" style="width:0%"></div></div>
+            <span class="macro-pct">0%</span>
+          </div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="macro-body"><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Gestión de la Sostenibilidad</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Gestión Humana y SSOMA</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Gianmarco Torres</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Responsabilidad Social</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Gestión Humana y SSOMA</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Gianmarco Torres</span>
+            </div>
+          </div>
+        </div></div>
+      </div><div class="macro-card" data-tipo="Estratégico">
+        <div class="macro-head">
+          <div class="macro-title-wrap">
+            <h3>Gestión Estratégica</h3>
+            <span class="macro-owner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg>Marcelo Bustamante</span>
+          </div>
+          <span class="macro-meta">2 procesos</span>
+          <div class="macro-consolidado">
+            <div class="prog-track-sm"><div class="prog-fill-sm macro-fill zero" style="width:0%"></div></div>
+            <span class="macro-pct">0%</span>
+          </div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="macro-body"><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Planeamiento Estratégico</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia General</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Marcelo Bustamante</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Revisión por la Dirección</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia General</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Marcelo Bustamante</span>
+            </div>
+          </div>
+        </div></div>
+      </div><div class="macro-card" data-tipo="Estratégico">
+        <div class="macro-head">
+          <div class="macro-title-wrap">
+            <h3>Sistema Integrado de Gestión</h3>
+            <span class="macro-owner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg>Ernesto Arrarte</span>
+          </div>
+          <span class="macro-meta">5 procesos</span>
+          <div class="macro-consolidado">
+            <div class="prog-track-sm"><div class="prog-fill-sm macro-fill zero" style="width:0%"></div></div>
+            <span class="macro-pct">0%</span>
+          </div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="macro-body"><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Gestión de Auditorías</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>SIG</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Ernesto Arrarte</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Gestión de Documentos</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>SIG</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Ernesto Arrarte</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Gestión de Mejora Continua</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>SIG</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Ernesto Arrarte</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Gestión de Riesgos</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>SIG</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Ernesto Arrarte</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Gestión del Desempeño</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>SIG</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Ernesto Arrarte</span>
+            </div>
+          </div>
+        </div></div>
+      </div></div>
+    </div><div class="tipo-section">
+      <div class="tipo-head">
+        <span class="tipo-pill core">Core Business</span>
+        <span class="tipo-desc">6 macroprocesos</span>
+        <span class="tipo-avance-badge" id="tipo-head-avance-core">
+          <span class="tab-track"><span class="tab-fill" style="width:18%"></span></span>
+          <span class="tab-pct">18% avance</span>
+        </span>
+        <span class="tipo-count">25 procesos</span>
+      </div>
+      <div class="macro-grid"><div class="macro-card open" data-tipo="Core Business">
+        <div class="macro-head">
+          <div class="macro-title-wrap">
+            <h3>Gestión Comercial</h3>
+            <span class="macro-owner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg>Renzo Larrauri</span>
+          </div>
+          <span class="macro-meta">5 procesos</span>
+          <div class="macro-consolidado">
+            <div class="prog-track-sm"><div class="prog-fill-sm macro-fill low" style="width:10%"></div></div>
+            <span class="macro-pct">10%</span>
+          </div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="macro-body"><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Desarrollo de Nuevos Servicios</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia Comercial</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Renzo Larrauri</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Gestión Comercial</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia Comercial</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Renzo Larrauri</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Gestión de Clientes</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia Comercial</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Renzo Larrauri</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Gestión de la Satisfacción del Cliente</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm mid" style="width:50%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="50">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia Comercial</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Renzo Larrauri</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Preliquidación</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia Comercial</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Renzo Larrauri</span>
+            </div>
+          </div>
+        </div></div>
+      </div><div class="macro-card" data-tipo="Core Business">
+        <div class="macro-head">
+          <div class="macro-title-wrap">
+            <h3>Operaciones Aduaneras</h3>
+            <span class="macro-owner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg>Deckner Camposano</span>
+          </div>
+          <span class="macro-meta">5 procesos</span>
+          <div class="macro-consolidado">
+            <div class="prog-track-sm"><div class="prog-fill-sm macro-fill zero" style="width:0%"></div></div>
+            <span class="macro-pct">0%</span>
+          </div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="macro-body"><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Flete Exportación</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Aduanas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Deckner Camposano</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Flete Importación</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Aduanas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Deckner Camposano</span>
+            </div>
+          </div>
+        </div><div class="proceso-row open">
+          <div class="proceso-head">
+            <span class="proceso-name">Régimen Aduanero de Ingreso</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Aduanas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Deckner Camposano</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Régimen Aduanero de Salida</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Aduanas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Deckner Camposano</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Técnica Aduanera</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Aduanas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Deckner Camposano</span>
+            </div>
+          </div>
+        </div></div>
+      </div><div class="macro-card open" data-tipo="Core Business">
+        <div class="macro-head">
+          <div class="macro-title-wrap">
+            <h3>Operaciones de Depósitos y Transporte</h3>
+            <span class="macro-owner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg>Carlos Nuñez</span>
+          </div>
+          <span class="macro-meta">3 procesos</span>
+          <div class="macro-consolidado">
+            <div class="prog-track-sm"><div class="prog-fill-sm macro-fill mid" style="width:67%"></div></div>
+            <span class="macro-pct">67%</span>
+          </div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="macro-body"><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Almacenaje</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Operaciones Logísticas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Carlos Nuñez</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Depósito de Contenedores</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm hi" style="width:100%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="100">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Operaciones Logísticas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Carlos Nuñez</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Transporte y Distribución</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm hi" style="width:100%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="100">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Operaciones Logísticas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Carlos Nuñez</span>
+            </div>
+          </div>
+        </div></div>
+      </div><div class="macro-card" data-tipo="Core Business">
+        <div class="macro-head">
+          <div class="macro-title-wrap">
+            <h3>Operaciones Marítimas y Fluviales</h3>
+            <span class="macro-owner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg>Gustavo Rey</span>
+          </div>
+          <span class="macro-meta">4 procesos</span>
+          <div class="macro-consolidado">
+            <div class="prog-track-sm"><div class="prog-fill-sm macro-fill zero" style="width:0%"></div></div>
+            <span class="macro-pct">0%</span>
+          </div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="macro-body"><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Buceo y Salvamento</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Flota y Buceo</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Gustavo Rey</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Operaciones de Terminales de Hidrocarburos</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Flota y Buceo</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Gustavo Rey</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Operaciones Flota</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Flota y Buceo</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Gustavo Rey</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Proyectos Marítimos</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Flota y Buceo</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Gustavo Rey</span>
+            </div>
+          </div>
+        </div></div>
+      </div><div class="macro-card" data-tipo="Core Business">
+        <div class="macro-head">
+          <div class="macro-title-wrap">
+            <h3>Operaciones Portuarias</h3>
+            <span class="macro-owner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg>Julio Lacherre</span>
+          </div>
+          <span class="macro-meta">6 procesos</span>
+          <div class="macro-consolidado">
+            <div class="prog-track-sm"><div class="prog-fill-sm macro-fill low" style="width:25%"></div></div>
+            <span class="macro-pct">25%</span>
+          </div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="macro-body"><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Agenciamiento</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm low" style="width:20%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="20">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Operaciones Marítimas y Portuarias</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Julio Lacherre</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Amarre y Desamarre</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm low" style="width:20%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="20">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Operaciones Marítimas y Portuarias</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Julio Lacherre</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Estiba y Desestiba</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm low" style="width:20%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="20">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Operaciones Marítimas y Portuarias</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Julio Lacherre</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Gestión Documentaria de Naves</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm mid" style="width:50%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="50">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Operaciones Marítimas y Portuarias</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Julio Lacherre</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Manipuleo de Carga</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm low" style="width:20%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="20">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Operaciones Marítimas y Portuarias</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Julio Lacherre</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Practicaje</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm low" style="width:20%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="20">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Operaciones Marítimas y Portuarias</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Julio Lacherre</span>
+            </div>
+          </div>
+        </div></div>
+      </div><div class="macro-card" data-tipo="Core Business">
+        <div class="macro-head">
+          <div class="macro-title-wrap">
+            <h3>Proyectos Especiales</h3>
+            <span class="macro-owner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg>Pedro Horna</span>
+          </div>
+          <span class="macro-meta">2 procesos</span>
+          <div class="macro-consolidado">
+            <div class="prog-track-sm"><div class="prog-fill-sm macro-fill low" style="width:20%"></div></div>
+            <span class="macro-pct">20%</span>
+          </div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="macro-body"><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Logística de Proyectos</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm low" style="width:20%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="20">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Proyectos OLI</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Pedro Horna</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Operaciones de Izaje y Acarreo de Carga</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm low" style="width:20%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="20">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Proyectos OLI</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Pedro Horna</span>
+            </div>
+          </div>
+        </div></div>
+      </div></div>
+    </div><div class="tipo-section">
+      <div class="tipo-head">
+        <span class="tipo-pill soporte">Soporte</span>
+        <span class="tipo-desc">4 macroprocesos</span>
+        <span class="tipo-avance-badge" id="tipo-head-avance-soporte">
+          <span class="tab-track"><span class="tab-fill" style="width:13%"></span></span>
+          <span class="tab-pct">13% avance</span>
+        </span>
+        <span class="tipo-count">24 procesos</span>
+      </div>
+      <div class="macro-grid"><div class="macro-card" data-tipo="Soporte">
+        <div class="macro-head">
+          <div class="macro-title-wrap">
+            <h3>GAF</h3>
+            <span class="macro-owner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg>Giancarlo Cabello</span>
+          </div>
+          <span class="macro-meta">11 procesos</span>
+          <div class="macro-consolidado">
+            <div class="prog-track-sm"><div class="prog-fill-sm macro-fill low" style="width:29%"></div></div>
+            <span class="macro-pct">29%</span>
+          </div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="macro-body"><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Atención al Cliente de operaciones maritimas</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Administración y Finanzas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Giancarlo Cabello</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Cobranzas</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm low" style="width:20%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="20">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Administración y Finanzas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Giancarlo Cabello</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Facturación</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm mid" style="width:40%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="40">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Administración y Finanzas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Giancarlo Cabello</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Gestión de Almacén</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm mid" style="width:70%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="70">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Administración y Finanzas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Giancarlo Cabello</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Gestión de Compras</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm mid" style="width:70%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="70">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Administración y Finanzas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Giancarlo Cabello</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Gestión de Proveedores</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm mid" style="width:70%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="70">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Administración y Finanzas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Giancarlo Cabello</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Gestión del Presupuesto</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Administración y Finanzas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Giancarlo Cabello</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Mantenimiento de Infraestructura</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Administración y Finanzas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Giancarlo Cabello</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Seguridad Fisica</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Administración y Finanzas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Giancarlo Cabello</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Tecnología de la Información y Procesos</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Administración y Finanzas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Giancarlo Cabello</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Tesorería</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm mid" style="width:50%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="50">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Administración y Finanzas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Giancarlo Cabello</span>
+            </div>
+          </div>
+        </div></div>
+      </div><div class="macro-card" data-tipo="Soporte">
+        <div class="macro-head">
+          <div class="macro-title-wrap">
+            <h3>Gestión Humana y SSOMA</h3>
+            <span class="macro-owner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg>Gianmarco Torres</span>
+          </div>
+          <span class="macro-meta">8 procesos</span>
+          <div class="macro-consolidado">
+            <div class="prog-track-sm"><div class="prog-fill-sm macro-fill zero" style="width:0%"></div></div>
+            <span class="macro-pct">0%</span>
+          </div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="macro-body"><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Bienestar Social</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Gestión Humana y SSOMA</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Gianmarco Torres</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Gestión Ambiental</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Gestión Humana y SSOMA</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Gianmarco Torres</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Nomina y Compensaciones</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Gestión Humana y SSOMA</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Gianmarco Torres</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Reclutamiento y Selección</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Gestión Humana y SSOMA</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Gianmarco Torres</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Relaciones Laborales</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Gestión Humana y SSOMA</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Gianmarco Torres</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Salud Ocupacional</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Gestión Humana y SSOMA</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Gianmarco Torres</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Seguridad Ocupacional</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Gestión Humana y SSOMA</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Gianmarco Torres</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Talento y Desarrollo Humano</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Gestión Humana y SSOMA</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Gianmarco Torres</span>
+            </div>
+          </div>
+        </div></div>
+      </div><div class="macro-card" data-tipo="Soporte">
+        <div class="macro-head">
+          <div class="macro-title-wrap">
+            <h3>Gestión Legal</h3>
+            <span class="macro-owner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg>Luis de los Ríos</span>
+          </div>
+          <span class="macro-meta">3 procesos</span>
+          <div class="macro-consolidado">
+            <div class="prog-track-sm"><div class="prog-fill-sm macro-fill zero" style="width:0%"></div></div>
+            <span class="macro-pct">0%</span>
+          </div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="macro-body"><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Asesoría juridica en procesos</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Asesor Legal</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Luis de los Ríos</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Asesoría legal coorporativa</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Asesor Legal</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Luis de los Ríos</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Cumplimiento y Requisitos legales</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Asesor Legal</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Luis de los Ríos</span>
+            </div>
+          </div>
+        </div></div>
+      </div><div class="macro-card" data-tipo="Soporte">
+        <div class="macro-head">
+          <div class="macro-title-wrap">
+            <h3>Mantenimiento y Proyectos</h3>
+            <span class="macro-owner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg>Norberto Chueca</span>
+          </div>
+          <span class="macro-meta">2 procesos</span>
+          <div class="macro-consolidado">
+            <div class="prog-track-sm"><div class="prog-fill-sm macro-fill zero" style="width:0%"></div></div>
+            <span class="macro-pct">0%</span>
+          </div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="macro-body"><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Mantenimiento Unidades Operativas</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Mantenimiento</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Norberto Chueca</span>
+            </div>
+          </div>
+        </div><div class="proceso-row">
+          <div class="proceso-head">
+            <span class="proceso-name">Proyectos y Carenas</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm zero" style="width:0%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="0">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"></path></svg>Gerencia de Mantenimiento</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;Norberto Chueca</span>
+            </div>
+          </div>
+        </div></div>
+      </div></div>
+    </div></div>
+
+  <div class="bottom-toggle" id="bottomToggle">
+    <span class="bt-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+      Ver más indicadores (gerencias y aprobadores)
+    </span>
+    <svg class="bt-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+  </div>
+  <div class="bottom-grid-wrap" id="bottomGridWrap">
+  <div class="bottom-grid">
+    <div class="panel">
+      <h3>Procesos por Gerencia / Área</h3>
+      <div class="gerencia-list" id="gerenciaList">
+    <div class="gerencia-row">
+      <span class="gname" title="Gerencia de Administración y Finanzas">Gerencia de Administración y Finanzas</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:100%"></div></div>
+      <span class="gcount">11</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Gerencia de Gestión Humana y SSOMA">Gerencia de Gestión Humana y SSOMA</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:91%"></div></div>
+      <span class="gcount">10</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Gerencia de Operaciones Marítimas y Portuarias">Gerencia de Operaciones Marítimas y Portuarias</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:55%"></div></div>
+      <span class="gcount">6</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Gerencia Comercial">Gerencia Comercial</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:45%"></div></div>
+      <span class="gcount">5</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Gerencia de Aduanas">Gerencia de Aduanas</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:45%"></div></div>
+      <span class="gcount">5</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="SIG">SIG</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:45%"></div></div>
+      <span class="gcount">5</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Gerencia de Flota y Buceo">Gerencia de Flota y Buceo</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:36%"></div></div>
+      <span class="gcount">4</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Gerencia de Operaciones Logísticas">Gerencia de Operaciones Logísticas</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:27%"></div></div>
+      <span class="gcount">3</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Asesor Legal">Asesor Legal</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:27%"></div></div>
+      <span class="gcount">3</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Gerencia de Proyectos OLI">Gerencia de Proyectos OLI</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:18%"></div></div>
+      <span class="gcount">2</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Gerencia General">Gerencia General</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:18%"></div></div>
+      <span class="gcount">2</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Gerencia de Mantenimiento">Gerencia de Mantenimiento</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:18%"></div></div>
+      <span class="gcount">2</span>
+    </div>
+  </div>
+    </div>
+
+    <div class="panel">
+      <h3>Dueños de proceso (aprobadores)</h3>
+      <div class="gerencia-list" id="aprobList">
+    <div class="gerencia-row">
+      <span class="gname" title="Giancarlo Cabello">Giancarlo Cabello</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:100%"></div></div>
+      <span class="gcount">11</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Gianmarco Torres">Gianmarco Torres</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:91%"></div></div>
+      <span class="gcount">10</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Julio Lacherre">Julio Lacherre</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:55%"></div></div>
+      <span class="gcount">6</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Renzo Larrauri">Renzo Larrauri</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:45%"></div></div>
+      <span class="gcount">5</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Deckner Camposano">Deckner Camposano</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:45%"></div></div>
+      <span class="gcount">5</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Ernesto Arrarte">Ernesto Arrarte</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:45%"></div></div>
+      <span class="gcount">5</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Gustavo Rey">Gustavo Rey</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:36%"></div></div>
+      <span class="gcount">4</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Carlos Nuñez">Carlos Nuñez</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:27%"></div></div>
+      <span class="gcount">3</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Luis de los Ríos">Luis de los Ríos</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:27%"></div></div>
+      <span class="gcount">3</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Pedro Horna">Pedro Horna</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:18%"></div></div>
+      <span class="gcount">2</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Marcelo Bustamante">Marcelo Bustamante</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:18%"></div></div>
+      <span class="gcount">2</span>
+    </div>
+  
+    <div class="gerencia-row">
+      <span class="gname" title="Norberto Chueca">Norberto Chueca</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:18%"></div></div>
+      <span class="gcount">2</span>
+    </div>
+  </div>
+    </div>
+
+  </div>
+  <div class="objective-box" style="margin-top:16px;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4"></circle><circle cx="12" cy="12" r="0.8" fill="currentColor"></circle></svg>
+    <p><b>Objetivo</b>Contar con un mapa único y trazable de los procesos de COSMOS, con responsables claros y avance visible para su gestión y mejora continua.</p>
+  </div>
+  </div>
+
+  <footer>Torre de Control · COSMOS — Grupo Andino · Mapa de Procesos generado a partir de la Matriz de Levantamiento de Procesos</footer>
+</div>
+<script>
+const DATA = [{"tipo": "Core Business", "macro": "Gestión Comercial", "proceso": "Desarrollo de Nuevos Servicios", "area": "Gerencia Comercial", "aprob": "Renzo Larrauri", "avance": 0}, {"tipo": "Core Business", "macro": "Gestión Comercial", "proceso": "Gestión Comercial", "area": "Gerencia Comercial", "aprob": "Renzo Larrauri", "avance": 0}, {"tipo": "Core Business", "macro": "Gestión Comercial", "proceso": "Gestión de Clientes", "area": "Gerencia Comercial", "aprob": "Renzo Larrauri", "avance": 0}, {"tipo": "Core Business", "macro": "Gestión Comercial", "proceso": "Gestión de la Satisfacción del Cliente", "area": "Gerencia Comercial", "aprob": "Renzo Larrauri", "avance": 50}, {"tipo": "Core Business", "macro": "Gestión Comercial", "proceso": "Preliquidación", "area": "Gerencia Comercial", "aprob": "Renzo Larrauri", "avance": 0}, {"tipo": "Core Business", "macro": "Operaciones Aduaneras", "proceso": "Flete Exportación", "area": "Gerencia de Aduanas", "aprob": "Deckner Camposano", "avance": 0}, {"tipo": "Core Business", "macro": "Operaciones Aduaneras", "proceso": "Flete Importación", "area": "Gerencia de Aduanas", "aprob": "Deckner Camposano", "avance": 0}, {"tipo": "Core Business", "macro": "Operaciones Aduaneras", "proceso": "Régimen Aduanero de Ingreso", "area": "Gerencia de Aduanas", "aprob": "Deckner Camposano", "avance": 0}, {"tipo": "Core Business", "macro": "Operaciones Aduaneras", "proceso": "Régimen Aduanero de Salida", "area": "Gerencia de Aduanas", "aprob": "Deckner Camposano", "avance": 0}, {"tipo": "Core Business", "macro": "Operaciones Aduaneras", "proceso": "Técnica Aduanera", "area": "Gerencia de Aduanas", "aprob": "Deckner Camposano", "avance": 0}, {"tipo": "Core Business", "macro": "Operaciones de Depósitos y Transporte", "proceso": "Almacenaje", "area": "Gerencia de Operaciones Logísticas", "aprob": "Carlos Nuñez", "avance": 0}, {"tipo": "Core Business", "macro": "Operaciones de Depósitos y Transporte", "proceso": "Depósito de Contenedores", "area": "Gerencia de Operaciones Logísticas", "aprob": "Carlos Nuñez", "avance": 100}, {"tipo": "Core Business", "macro": "Operaciones de Depósitos y Transporte", "proceso": "Transporte y Distribución", "area": "Gerencia de Operaciones Logísticas", "aprob": "Carlos Nuñez", "avance": 100}, {"tipo": "Core Business", "macro": "Operaciones Marítimas y Fluviales", "proceso": "Buceo y Salvamento", "area": "Gerencia de Flota y Buceo", "aprob": "Gustavo Rey", "avance": 0}, {"tipo": "Core Business", "macro": "Operaciones Marítimas y Fluviales", "proceso": "Operaciones de Terminales de Hidrocarburos", "area": "Gerencia de Flota y Buceo", "aprob": "Gustavo Rey", "avance": 0}, {"tipo": "Core Business", "macro": "Operaciones Marítimas y Fluviales", "proceso": "Operaciones Flota", "area": "Gerencia de Flota y Buceo", "aprob": "Gustavo Rey", "avance": 0}, {"tipo": "Core Business", "macro": "Operaciones Marítimas y Fluviales", "proceso": "Proyectos Marítimos", "area": "Gerencia de Flota y Buceo", "aprob": "Gustavo Rey", "avance": 0}, {"tipo": "Core Business", "macro": "Operaciones Portuarias", "proceso": "Agenciamiento", "area": "Gerencia de Operaciones Marítimas y Portuarias", "aprob": "Julio Lacherre", "avance": 20}, {"tipo": "Core Business", "macro": "Operaciones Portuarias", "proceso": "Amarre y Desamarre", "area": "Gerencia de Operaciones Marítimas y Portuarias", "aprob": "Julio Lacherre", "avance": 20}, {"tipo": "Core Business", "macro": "Operaciones Portuarias", "proceso": "Estiba y Desestiba", "area": "Gerencia de Operaciones Marítimas y Portuarias", "aprob": "Julio Lacherre", "avance": 20}, {"tipo": "Core Business", "macro": "Operaciones Portuarias", "proceso": "Gestión Documentaria de Naves", "area": "Gerencia de Operaciones Marítimas y Portuarias", "aprob": "Julio Lacherre", "avance": 50}, {"tipo": "Core Business", "macro": "Operaciones Portuarias", "proceso": "Manipuleo de Carga", "area": "Gerencia de Operaciones Marítimas y Portuarias", "aprob": "Julio Lacherre", "avance": 20}, {"tipo": "Core Business", "macro": "Operaciones Portuarias", "proceso": "Practicaje", "area": "Gerencia de Operaciones Marítimas y Portuarias", "aprob": "Julio Lacherre", "avance": 20}, {"tipo": "Core Business", "macro": "Proyectos Especiales", "proceso": "Logística de Proyectos", "area": "Gerencia de Proyectos OLI", "aprob": "Pedro Horna", "avance": 20}, {"tipo": "Core Business", "macro": "Proyectos Especiales", "proceso": "Operaciones de Izaje y Acarreo de Carga", "area": "Gerencia de Proyectos OLI", "aprob": "Pedro Horna", "avance": 20}, {"tipo": "Estratégico", "macro": "Gestión de la Sostenibilidad", "proceso": "Gestión de la Sostenibilidad", "area": "Gerencia de Gestión Humana y SSOMA", "aprob": "Gianmarco Torres", "avance": 0}, {"tipo": "Estratégico", "macro": "Gestión de la Sostenibilidad", "proceso": "Responsabilidad Social", "area": "Gerencia de Gestión Humana y SSOMA", "aprob": "Gianmarco Torres", "avance": 0}, {"tipo": "Estratégico", "macro": "Gestión Estratégica", "proceso": "Planeamiento Estratégico", "area": "Gerencia General", "aprob": "Marcelo Bustamante", "avance": 0}, {"tipo": "Estratégico", "macro": "Gestión Estratégica", "proceso": "Revisión por la Dirección", "area": "Gerencia General", "aprob": "Marcelo Bustamante", "avance": 0}, {"tipo": "Estratégico", "macro": "Sistema Integrado de Gestión", "proceso": "Gestión de Auditorías", "area": "SIG", "aprob": "Ernesto Arrarte", "avance": 0}, {"tipo": "Estratégico", "macro": "Sistema Integrado de Gestión", "proceso": "Gestión de Documentos", "area": "SIG", "aprob": "Ernesto Arrarte", "avance": 0}, {"tipo": "Estratégico", "macro": "Sistema Integrado de Gestión", "proceso": "Gestión de Mejora Continua", "area": "SIG", "aprob": "Ernesto Arrarte", "avance": 0}, {"tipo": "Estratégico", "macro": "Sistema Integrado de Gestión", "proceso": "Gestión de Riesgos", "area": "SIG", "aprob": "Ernesto Arrarte", "avance": 0}, {"tipo": "Estratégico", "macro": "Sistema Integrado de Gestión", "proceso": "Gestión del Desempeño", "area": "SIG", "aprob": "Ernesto Arrarte", "avance": 0}, {"tipo": "Soporte", "macro": "GAF", "proceso": "Cobranzas", "area": "Gerencia de Administración y Finanzas", "aprob": "Giancarlo Cabello", "avance": 20}, {"tipo": "Soporte", "macro": "GAF", "proceso": "Facturación", "area": "Gerencia de Administración y Finanzas", "aprob": "Giancarlo Cabello", "avance": 40}, {"tipo": "Soporte", "macro": "GAF", "proceso": "Gestión de Compras", "area": "Gerencia de Administración y Finanzas", "aprob": "Giancarlo Cabello", "avance": 70}, {"tipo": "Soporte", "macro": "GAF", "proceso": "Gestión de Almacén", "area": "Gerencia de Administración y Finanzas", "aprob": "Giancarlo Cabello", "avance": 70}, {"tipo": "Soporte", "macro": "GAF", "proceso": "Gestión de Proveedores", "area": "Gerencia de Administración y Finanzas", "aprob": "Giancarlo Cabello", "avance": 70}, {"tipo": "Soporte", "macro": "GAF", "proceso": "Gestión del Presupuesto", "area": "Gerencia de Administración y Finanzas", "aprob": "Giancarlo Cabello", "avance": 0}, {"tipo": "Soporte", "macro": "GAF", "proceso": "Mantenimiento de Infraestructura", "area": "Gerencia de Administración y Finanzas", "aprob": "Giancarlo Cabello", "avance": 0}, {"tipo": "Soporte", "macro": "GAF", "proceso": "Seguridad Fisica", "area": "Gerencia de Administración y Finanzas", "aprob": "Giancarlo Cabello", "avance": 0}, {"tipo": "Soporte", "macro": "GAF", "proceso": "Tecnología de la Información y Procesos", "area": "Gerencia de Administración y Finanzas", "aprob": "Giancarlo Cabello", "avance": 0}, {"tipo": "Soporte", "macro": "GAF", "proceso": "Tesorería", "area": "Gerencia de Administración y Finanzas", "aprob": "Giancarlo Cabello", "avance": 50}, {"tipo": "Soporte", "macro": "Gestión Humana y SSOMA", "proceso": "Bienestar Social", "area": "Gerencia de Gestión Humana y SSOMA", "aprob": "Gianmarco Torres", "avance": 0}, {"tipo": "Soporte", "macro": "Gestión Humana y SSOMA", "proceso": "Gestión Ambiental", "area": "Gerencia de Gestión Humana y SSOMA", "aprob": "Gianmarco Torres", "avance": 0}, {"tipo": "Soporte", "macro": "Gestión Humana y SSOMA", "proceso": "Nomina y Compensaciones", "area": "Gerencia de Gestión Humana y SSOMA", "aprob": "Gianmarco Torres", "avance": 0}, {"tipo": "Soporte", "macro": "Gestión Humana y SSOMA", "proceso": "Reclutamiento y Selección", "area": "Gerencia de Gestión Humana y SSOMA", "aprob": "Gianmarco Torres", "avance": 0}, {"tipo": "Soporte", "macro": "Gestión Humana y SSOMA", "proceso": "Relaciones Laborales", "area": "Gerencia de Gestión Humana y SSOMA", "aprob": "Gianmarco Torres", "avance": 0}, {"tipo": "Soporte", "macro": "Gestión Humana y SSOMA", "proceso": "Salud Ocupacional", "area": "Gerencia de Gestión Humana y SSOMA", "aprob": "Gianmarco Torres", "avance": 0}, {"tipo": "Soporte", "macro": "Gestión Humana y SSOMA", "proceso": "Seguridad Ocupacional", "area": "Gerencia de Gestión Humana y SSOMA", "aprob": "Gianmarco Torres", "avance": 0}, {"tipo": "Soporte", "macro": "Gestión Humana y SSOMA", "proceso": "Talento y Desarrollo Humano", "area": "Gerencia de Gestión Humana y SSOMA", "aprob": "Gianmarco Torres", "avance": 0}, {"tipo": "Soporte", "macro": "Gestión Legal", "proceso": "Asesoría legal coorporativa", "area": "Asesor Legal", "aprob": "Luis de los Ríos", "avance": 0}, {"tipo": "Soporte", "macro": "Gestión Legal", "proceso": "Asesoría juridica en procesos", "area": "Asesor Legal", "aprob": "Luis de los Ríos", "avance": 0}, {"tipo": "Soporte", "macro": "Gestión Legal", "proceso": "Cumplimiento y Requisitos legales", "area": "Asesor Legal", "aprob": "Luis de los Ríos", "avance": 0}, {"tipo": "Soporte", "macro": "Mantenimiento y Proyectos", "proceso": "Mantenimiento Unidades Operativas", "area": "Gerencia de Mantenimiento", "aprob": "Norberto Chueca", "avance": 0}, {"tipo": "Soporte", "macro": "Mantenimiento y Proyectos", "proceso": "Proyectos y Carenas", "area": "Gerencia de Mantenimiento", "aprob": "Norberto Chueca", "avance": 0}];
+
+let state = { tipo:"all", search:"", openMacro:new Set(), openProceso:new Set(), allExpanded:false };
+const STORAGE_KEY = "cosmos_mapa_procesos_avance_v1";
+let progressState = {}; // procKey -> % avance (0-100)
+
+function loadSavedProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){ return JSON.parse(raw) || {}; }
+  }catch(e){ /* localStorage no disponible (ej. archivo abierto con file://) */ }
+  return {};
+}
+function persistProgress(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(progressState)); }
+  catch(e){ /* almacenamiento no disponible; se ignora silenciosamente */ }
+}
+const savedProgress = loadSavedProgress();
+DATA.forEach(r=>{
+  const key = r.tipo+"::"+r.macro+"::"+r.proceso;
+  progressState[key] = (savedProgress[key] !== undefined) ? savedProgress[key] : (r.avance || 0);
+});
+
+
+function buildTree(rows){
+  const tree = {};
+  rows.forEach(r=>{
+    tree[r.tipo] = tree[r.tipo] || {};
+    tree[r.tipo][r.macro] = tree[r.tipo][r.macro] || {};
+    tree[r.tipo][r.macro][r.proceso] = {area:r.area, aprob:r.aprob};
+  });
+  return tree;
+}
+
+const TIPO_ORDER = ["Estratégico","Core Business","Soporte"];
+const TIPO_CLASS = {"Estratégico":"estrategico","Core Business":"core","Soporte":"soporte"};
+const TIPO_SLUG = {"Estratégico":"estrategico","Core Business":"core","Soporte":"soporte"};
+
+function esc(s){
+  return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function hl(text, q){
+  if(!q) return esc(text);
+  const t = esc(text);
+  const idx = t.toLowerCase().indexOf(q.toLowerCase());
+  if(idx===-1) return t;
+  return t.slice(0,idx) + "<mark>" + t.slice(idx, idx+q.length) + "</mark>" + t.slice(idx+q.length);
+}
+
+function rowMatchesSearch(tipo, macro, proceso, det, q){
+  if(!q) return true;
+  const hay = [tipo, macro, proceso, det.area, det.aprob].join(" ").toLowerCase();
+  return hay.includes(q);
+}
+
+function progClass(avance){
+  if(avance>=80) return "hi";
+  if(avance>=40) return "mid";
+  if(avance>0) return "low";
+  return "zero";
+}
+
+function render(){
+  const q = state.search;
+  const filteredRows = DATA.filter(r=> state.tipo==="all" || r.tipo===state.tipo);
+  const tree = buildTree(filteredRows);
+  const mapaEl = document.getElementById("mapa");
+  mapaEl.innerHTML = "";
+
+  let anyVisible = false;
+
+  TIPO_ORDER.forEach(tipo=>{
+    if(!tree[tipo]) return;
+    const macros = Object.keys(tree[tipo]).sort((a,b)=>a.localeCompare(b,'es'));
+
+    const visibleMacros = [];
+    macros.forEach(macro=>{
+      const procesos = Object.keys(tree[tipo][macro]);
+      const visibleProcesos = procesos.filter(p=> rowMatchesSearch(tipo, macro, p, tree[tipo][macro][p], q));
+      if(visibleProcesos.length){
+        visibleMacros.push({macro, procesos: visibleProcesos});
+      }
+    });
+    if(!visibleMacros.length) return;
+    anyVisible = true;
+
+    let macroCount = visibleMacros.length;
+    let procesoCount = visibleMacros.reduce((s,m)=>s+m.procesos.length,0);
+    const tipoAvance = calcTipoAvance(tipo);
+
+    const section = document.createElement("div");
+    section.className = "tipo-section";
+    section.innerHTML = `
+      <div class="tipo-head">
+        <span class="tipo-pill ${TIPO_CLASS[tipo]}">${tipo}</span>
+        <span class="tipo-desc">${macroCount} macroproceso${macroCount!==1?'s':''}</span>
+        <span class="tipo-avance-badge" id="tipo-head-avance-${TIPO_SLUG[tipo]}">
+          <span class="tab-track"><span class="tab-fill" style="width:${tipoAvance.avg}%"></span></span>
+          <span class="tab-pct">${tipoAvance.avg}% avance</span>
+        </span>
+        <span class="tipo-count">${procesoCount} proceso${procesoCount!==1?'s':''}</span>
+      </div>
+      <div class="macro-grid"></div>
+    `;
+    const grid = section.querySelector(".macro-grid");
+
+    visibleMacros.forEach(({macro, procesos})=>{
+      const macroKey = tipo+"::"+macro;
+      const isOpen = state.allExpanded || state.openMacro.has(macroKey);
+
+      // dueño del macroproceso: si todos los procesos comparten el mismo aprobador, se muestra único
+      const ownersInMacro = new Set(procesos.map(p=> tree[tipo][macro][p].aprob).filter(Boolean));
+      const macroOwnerLabel = ownersInMacro.size===1 ? [...ownersInMacro][0] : (ownersInMacro.size>1 ? "Varios dueños" : "");
+
+      // avance consolidado inicial del macroproceso (promedio de sus procesos)
+      const initMacroAvg = Math.round(procesos.reduce((s,p)=> s + (progressState[macroKey+"::"+p]||0), 0) / procesos.length) || 0;
+
+      const card = document.createElement("div");
+      card.className = "macro-card" + (isOpen ? " open" : "");
+      card.dataset.tipo = tipo;
+      card.innerHTML = `
+        <div class="macro-head">
+          <div class="macro-title-wrap">
+            <h3>${hl(macro,q)}</h3>
+            ${macroOwnerLabel ? `<span class="macro-owner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>${hl(macroOwnerLabel,q)}</span>` : ''}
+          </div>
+          <span class="macro-meta">${procesos.length} proceso${procesos.length!==1?'s':''}</span>
+          <div class="macro-consolidado">
+            <div class="prog-track-sm"><div class="prog-fill-sm macro-fill ${progClass(initMacroAvg)}" style="width:${initMacroAvg}%"></div></div>
+            <span class="macro-pct">${initMacroAvg}%</span>
+          </div>
+          <span class="chevron">›</span>
+        </div>
+        <div class="macro-body"></div>
+      `;
+      card.querySelector(".macro-head").addEventListener("click", ()=>{
+        if(state.openMacro.has(macroKey)){ state.openMacro.delete(macroKey); } else { state.openMacro.add(macroKey); }
+        state.allExpanded = false;
+        render();
+      });
+
+      const macroFill = card.querySelector(".macro-fill");
+      const macroPctEl = card.querySelector(".macro-pct");
+      function refreshMacroConsolidado(){
+        const avg = Math.round(procesos.reduce((s,p)=> s + (progressState[macroKey+"::"+p]||0), 0) / procesos.length) || 0;
+        macroFill.style.width = avg + "%";
+        macroFill.className = "prog-fill-sm macro-fill " + progClass(avg);
+        macroPctEl.textContent = avg + "%";
+      }
+
+      const body = card.querySelector(".macro-body");
+      procesos.sort((a,b)=>a.localeCompare(b,'es')).forEach(proceso=>{
+        const det = tree[tipo][macro][proceso];
+        const procKey = macroKey+"::"+proceso;
+        const procOpen = state.allExpanded || state.openProceso.has(procKey);
+        if(!(procKey in progressState)) progressState[procKey] = 0;        const avance = progressState[procKey];
+
+        const prow = document.createElement("div");
+        prow.className = "proceso-row" + (procOpen ? " open" : "");
+        prow.innerHTML = `
+          <div class="proceso-head">
+            <span class="proceso-name">${hl(proceso,q)}</span>
+            <div class="avance-mini">
+              <div class="prog-track-sm"><div class="prog-fill-sm ${progClass(avance)}" style="width:${avance}%"></div></div>
+              <input type="number" class="avance-input" min="0" max="100" value="${avance}">
+              <span class="pct-sign">%</span>
+            </div>
+            <span class="chevron-sm">›</span>
+          </div>
+          <div class="proceso-detail">
+            <div class="meta-line">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"/></svg>${hl(det.area || '—', q)}</span>
+              ${det.aprob ? `<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg><b style="color:var(--navy-800);">Dueño de proceso:</b>&nbsp;${hl(det.aprob,q)}</span>` : ''}
+            </div>
+          </div>
+        `;
+        prow.querySelector(".proceso-head").addEventListener("click", (e)=>{
+          if(state.openProceso.has(procKey)){ state.openProceso.delete(procKey); } else { state.openProceso.add(procKey); }
+          state.allExpanded = false;
+          render();
+        });
+
+        const input = prow.querySelector(".avance-input");
+        const fill = prow.querySelector(".prog-fill-sm");
+        input.addEventListener("click", e=> e.stopPropagation());
+        input.addEventListener("input", e=>{
+          e.stopPropagation();
+          let v = parseInt(e.target.value, 10);
+          if(isNaN(v)) v = 0;
+          v = Math.max(0, Math.min(100, v));
+          progressState[procKey] = v;
+          fill.style.width = v + "%";
+          fill.className = "prog-fill-sm " + progClass(v);
+          refreshMacroConsolidado();
+          updateAvgKPI();
+          persistProgress();
+          markUnsaved();
+        });
+        input.addEventListener("blur", e=>{
+          e.target.value = progressState[procKey];
+        });
+
+        body.appendChild(prow);
+      });
+
+      grid.appendChild(card);
+    });
+
+    mapaEl.appendChild(section);
+  });
+
+  if(!anyVisible){
+    mapaEl.innerHTML = `<div class="no-results">Sin resultados para los filtros aplicados.</div>`;
+  }
+
+  updateKPIs();
+}
+
+document.getElementById("tipoChips").addEventListener("click", e=>{
+  const chip = e.target.closest(".chip"); if(!chip) return;
+  state.tipo = chip.dataset.tipo;
+  document.querySelectorAll("#tipoChips .chip").forEach(c=>c.classList.toggle("active", c===chip));
+  render();
+});
+
+document.getElementById("searchInput").addEventListener("input", e=>{
+  state.search = e.target.value.trim().toLowerCase();
+  if(state.search){
+    state.allExpanded = true;
+  } else {
+    state.allExpanded = false;
+    state.openMacro.clear();
+    state.openProceso.clear();
+  }
+  render();
+});
+
+document.getElementById("toggleAllBtn").addEventListener("click", ()=>{
+  state.allExpanded = !state.allExpanded;
+  if(!state.allExpanded){ state.openMacro.clear(); state.openProceso.clear(); }
+  document.getElementById("toggleAllBtn").textContent = state.allExpanded ? "Colapsar todo" : "Expandir todo";
+  render();
+});
+
+function updateAvgKPI(){
+  const vals = Object.values(progressState);
+  const avg = vals.length ? Math.round(vals.reduce((s,v)=>s+v,0)/vals.length) : 0;
+  document.getElementById("kpi-avance").textContent = avg + "%";
+  updateTipoAvance();
+}
+
+function procKeysByTipo(tipo){
+  return DATA.filter(r=>r.tipo===tipo).map(r=> r.tipo+"::"+r.macro+"::"+r.proceso);
+}
+
+function calcTipoAvance(tipo){
+  const keys = procKeysByTipo(tipo);
+  const total = keys.reduce((s,k)=> s + (progressState[k]||0), 0);
+  const avg = keys.length ? Math.round(total / keys.length) : 0;
+  return { avg, total, count: keys.length };
+}
+
+function updateTipoAvance(){
+  TIPO_ORDER.forEach(tipo=>{
+    const slug = TIPO_SLUG[tipo];
+    const { avg } = calcTipoAvance(tipo);
+    const badge = document.getElementById("tipo-head-avance-"+slug);
+    if(badge){
+      badge.querySelector(".tab-fill").style.width = avg + "%";
+      badge.querySelector(".tab-pct").textContent = avg + "% avance";
+    }
+  });
+}
+
+
+document.getElementById("legendToggle").addEventListener("click", ()=>{
+  const toggle = document.getElementById("legendToggle");
+  const wrap = document.getElementById("legendBodyWrap");
+  toggle.classList.toggle("open");
+  wrap.classList.toggle("open");
+});
+
+document.getElementById("bottomToggle").addEventListener("click", ()=>{
+  const toggle = document.getElementById("bottomToggle");
+  const wrap = document.getElementById("bottomGridWrap");
+  const isOpen = wrap.classList.toggle("open");
+  toggle.classList.toggle("open", isOpen);
+});
+
+
+function updateKPIs(){
+  const rows = DATA.filter(r=> state.tipo==="all" || r.tipo===state.tipo);
+  const macros = new Set(rows.map(r=>r.tipo+"::"+r.macro)).size;
+  const procesos = new Set(rows.map(r=>r.tipo+"::"+r.macro+"::"+r.proceso)).size;
+  const gerencias = new Set(rows.map(r=>r.area).filter(Boolean)).size;
+
+  animateNumber("kpi-macros", macros);
+  animateNumber("kpi-procesos", procesos);
+  animateNumber("kpi-gerencias", gerencias);
+  updateAvgKPI();
+
+  renderGerenciaList();
+  renderAprobList();
+}
+
+function renderGerenciaList(){
+  const el = document.getElementById("gerenciaList");
+  if(!el) return;
+  const counts = {};
+  DATA.forEach(r=>{ if(r.area){ counts[r.area] = (counts[r.area]||0) + 1; } });
+  const entries = Object.entries(counts).sort((a,b)=> b[1]-a[1]);
+  const max = entries.length ? entries[0][1] : 1;
+  el.innerHTML = entries.map(([name,count])=> `
+    <div class="gerencia-row">
+      <span class="gname" title="${esc(name)}">${esc(name)}</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:${Math.round(count/max*100)}%"></div></div>
+      <span class="gcount">${count}</span>
+    </div>
+  `).join('');
+}
+
+function renderAprobList(){
+  const el = document.getElementById("aprobList");
+  if(!el) return;
+  const counts = {};
+  DATA.forEach(r=>{ if(r.aprob){ counts[r.aprob] = (counts[r.aprob]||0) + 1; } });
+  const entries = Object.entries(counts).sort((a,b)=> b[1]-a[1]);
+  const max = entries.length ? entries[0][1] : 1;
+  el.innerHTML = entries.map(([name,count])=> `
+    <div class="gerencia-row">
+      <span class="gname" title="${esc(name)}">${esc(name)}</span>
+      <div class="gbar-track"><div class="gbar-fill" style="width:${Math.round(count/max*100)}%"></div></div>
+      <span class="gcount">${count}</span>
+    </div>
+  `).join('');
+}
+
+function animateNumber(id, target, suffix=""){
+  const el = document.getElementById(id);
+  let current = 0;
+  const step = Math.max(1, Math.round(target/20)) || 1;
+  const iv = setInterval(()=>{
+    current += step;
+    if(current>=target){ current=target; clearInterval(iv); }
+    el.textContent = current + suffix;
+  }, 20);
+}
+
+/* ---- Guardado de avance ---- */
+function markUnsaved(){
+  const btn = document.getElementById("saveBtn");
+  const label = document.getElementById("saveBtnLabel");
+  if(btn){ btn.classList.add("unsaved"); }
+  if(label){ label.textContent = "Guardar cambios"; }
+}
+
+function markSaved(){
+  const btn = document.getElementById("saveBtn");
+  const label = document.getElementById("saveBtnLabel");
+  if(btn){ btn.classList.remove("unsaved"); }
+  if(label){ label.textContent = "Cambios guardados"; }
+  setTimeout(()=>{ if(label) label.textContent = "Guardar cambios"; }, 2200);
+}
+
+function exportUpdatedHtml(){
+  // Construye una copia de DATA con el avance actual incrustado por defecto,
+  // para que al compartir el archivo cualquiera que lo abra vea el mismo avance.
+  const dataConAvance = DATA.map(r=>{
+    const key = r.tipo+"::"+r.macro+"::"+r.proceso;
+    return Object.assign({}, r, { avance: progressState[key] || 0 });
+  });
+
+  let html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+  const newDataDecl = "const DATA = " + JSON.stringify(dataConAvance) + ";";
+  html = html.replace(/const DATA = \[[\s\S]*?\];/, newDataDecl);
+  // Al descargar ya queda todo "guardado": limpiamos el estado visual de pendiente
+  html = html.replace(/id="saveBtn"/, 'id="saveBtn"');
+  html = html.replace('<button class="btn-save unsaved"', '<button class="btn-save"');
+
+  const blob = new Blob([html], {type:"text/html;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "trazabilidad_procesos_cosmos.html";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  markSaved();
+}
+
+document.getElementById("saveBtn").addEventListener("click", exportUpdatedHtml);
+
+/* ---- Cronograma de Macroprocesos ---- */
+const CRONOGRAMA = [
+  {prioridad:1,  grupo:"Core Business", macro:"Gestión Comercial",                        fecha:"4-Set",  transversal:"GAF"},
+  {prioridad:2,  grupo:"Core Business", macro:"Operaciones de Depósitos y Transporte",     fecha:"4-Set",  transversal:null},
+  {prioridad:3,  grupo:"Core Business", macro:"Operaciones Aduaneras",                     fecha:"20-Set", transversal:null},
+  {prioridad:5,  grupo:"Soporte",       macro:"Operaciones Portuarias",                    fecha:"20-Set", transversal:null},
+  {prioridad:6,  grupo:"Soporte",       macro:"Operaciones Marítimas y Fluviales",          fecha:"20-Set", transversal:null},
+  {prioridad:7,  grupo:"Soporte",       macro:"Proyectos Especiales",                      fecha:"20-Set", transversal:null},
+  {prioridad:8,  grupo:"Soporte",       macro:"Gestión Legal",                             fecha:"15-Oct", transversal:null},
+  {prioridad:9,  grupo:"Soporte",       macro:"Mantenimiento y Proyectos",                 fecha:"15-Oct", transversal:null},
+  {prioridad:10, grupo:"Soporte",       macro:"Gestión Humana y SSOMA",                    fecha:"15-Oct", transversal:null},
+  {prioridad:11, grupo:"Estratégico",   macro:"Sistema Integrado de Gestión",              fecha:"30-Oct", transversal:null},
+  {prioridad:12, grupo:"Estratégico",   macro:"Gestión Estratégica",                       fecha:"30-Oct", transversal:null},
+  {prioridad:13, grupo:"Estratégico",   macro:"Gestión de la Sostenibilidad",              fecha:"30-Oct", transversal:null}
+];
+
+function grupoSlug(grupo){
+  if(grupo==="Core Business") return "core";
+  if(grupo==="Soporte") return "soporte";
+  return "estrategico";
+}
+
+function renderCronograma(){
+  const body = document.getElementById("cronogramaBody");
+  if(!body) return;
+  const sorted = [...CRONOGRAMA].sort((a,b)=> a.prioridad-b.prioridad);
+  body.innerHTML = sorted.map(r=>{
+    const fechaHtml = r.fecha
+      ? `<span class="cron-fecha">${esc(r.fecha)}</span>`
+      : `<span class="cron-fecha pendiente">Por definir</span>`;
+    const transHtml = r.transversal
+      ? `<span class="cron-transversal">${esc(r.transversal)}</span>`
+      : `<span class="cron-transversal none">—</span>`;
+    return `<tr>
+      <td><span class="cron-prioridad">${r.prioridad}</span></td>
+      <td><span class="cron-macro">${esc(r.macro)}</span></td>
+      <td><span class="tipo-pill ${grupoSlug(r.grupo)}" style="font-size:10px;padding:2px 8px;">${esc(r.grupo)}</span></td>
+      <td>${fechaHtml}</td>
+      <td>${transHtml}</td>
+    </tr>`;
+  }).join('');
+}
+
+document.getElementById("cronogramaBtn").addEventListener("click", ()=>{
+  const cronoSection = document.getElementById("cronogramaSection");
+  const mapa = document.getElementById("mapa");
+  const legend = document.querySelector(".info-legend");
+  const btn = document.getElementById("cronogramaBtn");
+  const isOpen = cronoSection.style.display !== "none";
+  if(isOpen){
+    cronoSection.style.display = "none";
+    mapa.style.display = "";
+    if(legend) legend.style.display = "";
+    btn.textContent = "📅 Ver Cronograma";
+  } else {
+    cronoSection.style.display = "block";
+    mapa.style.display = "none";
+    if(legend) legend.style.display = "none";
+    btn.textContent = "🗂️ Ver Mapa de Procesos";
+    renderCronograma();
+  }
+});
+
+render();
+</script>
+
+
+</body></html>
